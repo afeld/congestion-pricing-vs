@@ -6,8 +6,8 @@ import streamlit as st
 
 params = urlencode(
     {
-        "$select": "toll_date, SUM(crz_entries) AS count",
-        "$group": "toll_date",
+        "$select": "date_extract_woy(toll_date) AS week, SUM(crz_entries) AS count",
+        "$group": "week",
     }
 )
 # https://data.ny.gov/Transportation/MTA-Congestion-Relief-Zone-Vehicle-Entries-Beginni/t6yz-b64h/about_data
@@ -16,8 +16,8 @@ st.dataframe(entrances)
 
 fig = px.line(
     entrances,
-    x="toll_date",
+    x="week",
     y="count",
-    title="Vehicle entries by date",
+    title="Vehicle entries by week of the year",
 )
 fig.show()
