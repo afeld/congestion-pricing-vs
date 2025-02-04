@@ -24,16 +24,17 @@ def get_entrances():
 
 @st.cache_data
 def get_ridership():
-    """https://data.ny.gov/Transportation/MTA-Daily-Ridership-Data-2020-2025/vxuj-8kew/about_data"""
+    """https://data.ny.gov/Transportation/MTA-Daily-Ridership-and-Traffic-Beginning-2020/sayj-mze2/about_data"""
 
     params = urlencode(
         {
-            "$select": "date_extract_woy(date) AS week, SUM(subways_total_estimated_ridership) AS subway_ridership",
+            "$select": "date_extract_woy(date) AS week, SUM(count) AS subway_ridership",
             "$group": "week",
-            "$where": "date >= '2025-01-05'",
+            "$where": "date >= '2025-01-05' AND mode = 'Subway'",
+            "$order": "week",
         }
     )
-    ridership = pd.read_csv(f"https://data.ny.gov/resource/vxuj-8kew.csv?{params}")
+    ridership = pd.read_csv(f"https://data.ny.gov/resource/sayj-mze2.csv?{params}")
 
     return ridership
 
