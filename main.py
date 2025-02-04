@@ -39,35 +39,39 @@ def get_ridership():
     return ridership
 
 
+def line_plot(df, **kwargs):
+    fig = px.line(df, **kwargs)
+
+    # have Y axis start at zero
+    y_col = kwargs["y"]
+    max_y = df[y_col].max()
+    fig.update_yaxes(range=[0, max_y * 1.1])
+
+    st.plotly_chart(fig)
+
+
 def run():
     st.title("MTA Congestion Relief Zone Vehicle Entries")
 
     entrances = get_entrances()
     entrances
 
-    fig = px.line(
+    line_plot(
         entrances,
         x="week",
         y="count",
         title="Vehicle entries by week of the year",
     )
 
-    # have Y axis start at zero
-    fig.update_yaxes(range=[0, entrances["count"].max() * 1.1])
-
-    st.plotly_chart(fig)
-
     ridership = get_ridership()
     ridership
 
-    fig = px.line(
+    line_plot(
         ridership,
         x="week",
         y="subway_ridership",
         title="Subway ridership by week",
     )
-    fig.update_yaxes(range=[0, ridership["subway_ridership"].max() * 1.1])
-    st.plotly_chart(fig)
 
 
 run()
