@@ -2,7 +2,9 @@ from urllib.parse import urlencode
 
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 import streamlit as st
+from plotly.subplots import make_subplots
 
 
 @st.cache_data
@@ -72,6 +74,33 @@ def run():
         y="subway_ridership",
         title="Subway ridership by week",
     )
+
+    # https://plotly.com/python/multiple-axes/#two-y-axes
+
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+
+    fig.add_trace(
+        go.Line(x=entrances["week"], y=entrances["count"], name="Vehicle entries"),
+        secondary_y=False,
+    )
+
+    fig.add_trace(
+        go.Line(
+            x=ridership["week"],
+            y=ridership["subway_ridership"],
+            name="Subway ridership",
+        ),
+        secondary_y=True,
+    )
+
+    fig.update_layout(
+        title_text="Vehicle entrances to the Congestion Relief Zone vs. system-wide subway ridership"
+    )
+    fig.update_xaxes(title_text="Week")
+    fig.update_yaxes(title_text="Number of vehicles", secondary_y=False)
+    fig.update_yaxes(title_text="Number of subway riders", secondary_y=True)
+
+    st.plotly_chart(fig)
 
 
 run()
