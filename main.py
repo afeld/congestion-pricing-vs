@@ -33,6 +33,10 @@ def run():
         y="count",
         title="Vehicle entries by week of the year",
     )
+
+    # have Y axis start at zero
+    fig.update_yaxes(range=[0, entrances["count"].max() * 1.1])
+
     st.plotly_chart(fig)
 
 
