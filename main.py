@@ -26,7 +26,13 @@ def get_entrances():
 def get_ridership():
     """https://data.ny.gov/Transportation/MTA-Daily-Ridership-Data-2020-2025/vxuj-8kew/about_data"""
 
-    params = urlencode({"$where": "date >= '2025-01-05'"})
+    params = urlencode(
+        {
+            "$select": "date_extract_woy(date) AS week, SUM(subways_total_estimated_ridership) AS subway_ridership",
+            "$group": "week",
+            "$where": "date >= '2025-01-05'",
+        }
+    )
     ridership = pd.read_csv(f"https://data.ny.gov/resource/vxuj-8kew.csv?{params}")
 
     return ridership
@@ -51,12 +57,15 @@ def run():
     st.plotly_chart(fig)
 
     ridership = get_ridership()
+    ridership
+
     fig = px.line(
         ridership,
-        x="date",
-        y="subways_total_estimated_ridership",
-        title="Subway ridership by date",
+        x="week",
+        y="subway_ridership",
+        title="Subway ridership by week",
     )
+    fig.update_yaxes(range=[0, ridership["subway_ridership"].max() * 1.1])
     st.plotly_chart(fig)
 
 
