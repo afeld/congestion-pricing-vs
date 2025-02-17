@@ -56,7 +56,6 @@ def run():
 
     latest_date = current_ridership["date"].max().date()
     one_year_ago = latest_date - timedelta(days=365)
-    one_year_ago
 
     past_ridership = get_stats(date(2024, 1, 1), one_year_ago)
     # past_ridership
