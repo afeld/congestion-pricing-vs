@@ -20,8 +20,23 @@ def get_fence():
     return polygons["polygon"]
 
 
+def get_ridership_params(start: date, end: date):
+    # https://dev.socrata.com/docs/functions/within_polygon
+    polygons = get_fence()
+    geo_where_clause = " or ".join(
+        f"within_polygon(georeference, '{polygon}')" for polygon in polygons
+    )
+    where_clause = f"transit_timestamp >= '{start}' AND transit_timestamp < '{end}' AND ({geo_where_clause})"
+
+    return {
+        "$select": "date_trunc_ymd(transit_timestamp) AS date, SUM(ridership) AS ridership",
+        "$group": "date",
+        "$where": where_clause,
+    }
+
+
 @st.cache_data
-def get_stats(start: date, end: date):
+def get_daily_ridership(start: date, end: date):
     """End date is not inclusive"""
 
     if start.year != end.year:
@@ -30,34 +45,25 @@ def get_stats(start: date, end: date):
     current_year = date.today().year
     dataset_id = "5wq4-mkjj" if start.year == current_year else "wujg-7c2s"
 
-    # https://dev.socrata.com/docs/functions/within_polygon
-    polygons = get_fence()
-    geo_where_clause = " or ".join(
-        f"within_polygon(georeference, '{polygon}')" for polygon in polygons
-    )
-    where_clause = f"transit_timestamp >= '{start}' AND transit_timestamp < '{end}' AND ({geo_where_clause})"
+    params = get_ridership_params(start, end)
+    encoded_params = urlencode(params)
 
-    params = urlencode(
-        {
-            "$select": "date_trunc_ymd(transit_timestamp) AS date, SUM(ridership) AS ridership",
-            "$group": "date",
-            "$where": where_clause,
-        }
-    )
+    url = f"https://data.ny.gov/resource/{dataset_id}.csv?{encoded_params}"
+
     return pd.read_csv(
-        f"https://data.ny.gov/resource/{dataset_id}.csv?{params}",
+        url,
         parse_dates=["date"],
     )
 
 
 def run():
-    current_ridership = get_stats(date(2025, 1, 1), date(2025, 12, 31))
+    current_ridership = get_daily_ridership(date(2025, 1, 1), date(2025, 12, 31))
     # current_ridership
 
     latest_date = current_ridership["date"].max().date()
     one_year_ago = latest_date - timedelta(days=365)
 
-    past_ridership = get_stats(date(2024, 1, 1), one_year_ago)
+    past_ridership = get_daily_ridership(date(2024, 1, 1), one_year_ago)
     # past_ridership
 
     current_ridership["year"] = 2025
