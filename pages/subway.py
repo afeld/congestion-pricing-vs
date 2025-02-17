@@ -1,6 +1,7 @@
 from urllib.parse import urlencode
 
 import pandas as pd
+import plotly.express as px
 import streamlit as st
 
 START = "2025-01-05"
@@ -30,11 +31,25 @@ def get_stats():
 
     params = urlencode(
         {
+            "$select": "date_trunc_ymd(transit_timestamp) AS date, SUM(ridership) AS ridership",
+            "$group": "date",
             "$where": where_clause,
         }
     )
-    links = pd.read_csv(f"https://data.ny.gov/resource/5wq4-mkjj.csv?{params}")
-    links
+    return pd.read_csv(f"https://data.ny.gov/resource/5wq4-mkjj.csv?{params}")
 
 
-get_stats()
+def run():
+    ridership = get_stats()
+    ridership
+
+    fig = px.line(
+        ridership,
+        x="date",
+        y="ridership",
+        title="Subway ridership in the Central Business District",
+    )
+    st.plotly_chart(fig)
+
+
+run()
