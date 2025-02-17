@@ -68,7 +68,15 @@ def run():
 
     ridership = pd.concat([current_ridership, past_ridership])
 
-    fig = px.line(ridership, x="date", y="ridership", color="year")
+    fig = px.line(
+        ridership,
+        x="date",
+        y="ridership",
+        color="year",
+        # past year is dashed
+        line_dash="year",
+        line_dash_map={2024: "dash", 2025: "solid"},
+    )
     st.plotly_chart(fig)
 
 
