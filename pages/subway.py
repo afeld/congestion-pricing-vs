@@ -1,3 +1,4 @@
+from datetime import date
 from urllib.parse import urlencode
 
 import pandas as pd
@@ -22,12 +23,19 @@ def get_fence():
 
 
 @st.cache_data
-def get_stats():
+def get_stats(start: date, end: date):
+    if start.year != end.year:
+        raise ValueError("Start and end year must be the same")
+
+    current_year = date.today().year
+    dataset_id = "5wq4-mkjj" if start.year == current_year else "wujg-7c2s"
+
     # https://dev.socrata.com/docs/functions/within_polygon
     polygons = get_fence()
-    where_clause = " or ".join(
+    geo_where_clause = " or ".join(
         f"within_polygon(georeference, '{polygon}')" for polygon in polygons
     )
+    where_clause = f"transit_timestamp >= '{start}' AND transit_timestamp < '{end}' AND ({geo_where_clause})"
 
     params = urlencode(
         {
@@ -36,20 +44,34 @@ def get_stats():
             "$where": where_clause,
         }
     )
-    return pd.read_csv(f"https://data.ny.gov/resource/5wq4-mkjj.csv?{params}")
+    return pd.read_csv(f"https://data.ny.gov/resource/{dataset_id}.csv?{params}")
 
 
 def run():
-    ridership = get_stats()
-    ridership
+    today = date.today()
+    # this will likely break in 2026
+    current_ridership = get_stats(date(2025, 1, 1), today)
+    current_ridership
 
     fig = px.line(
-        ridership,
+        current_ridership,
         x="date",
         y="ridership",
         title="Subway ridership in the Central Business District",
     )
-    st.plotly_chart(fig)
+    st.plotly_chart(fig, key="current")
+
+    one_year_ago = today.replace(year=today.year - 1)
+    past_ridership = get_stats(date(2024, 1, 1), one_year_ago)
+    past_ridership
+
+    fig = px.line(
+        past_ridership,
+        x="date",
+        y="ridership",
+        title="Subway ridership in the Central Business District",
+    )
+    st.plotly_chart(fig, key="past")
 
 
 run()
