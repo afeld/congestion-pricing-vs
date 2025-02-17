@@ -20,6 +20,7 @@ def get_links():
         {
             "$select": "DISTINCT link_id, link_name",
             "$where": f"data_as_of >= '{START}' AND borough = 'Manhattan'",
+            "$order": "link_name",
         }
     )
     links = pd.read_csv(
