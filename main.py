@@ -106,3 +106,12 @@ def run():
 
 
 run()
+
+st.markdown(
+    """
+See also:
+
+- [MTA Metrics: Vehicle Entries](https://metrics.mta.info/?cbdtp/vehicleentries)
+- [Congestion Pricing Tracker](https://www.congestion-pricing-tracker.com/)
+"""
+)
