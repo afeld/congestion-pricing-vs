@@ -3,7 +3,9 @@ from urllib.parse import urlencode
 
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 import streamlit as st
+from plotly.subplots import make_subplots
 
 START = "2025-01-05"
 
@@ -44,34 +46,31 @@ def get_stats(start: date, end: date):
             "$where": where_clause,
         }
     )
-    return pd.read_csv(f"https://data.ny.gov/resource/{dataset_id}.csv?{params}")
+    return pd.read_csv(
+        f"https://data.ny.gov/resource/{dataset_id}.csv?{params}",
+        parse_dates=["date"],
+    )
 
 
 def run():
+    current_ridership = get_stats(date(2025, 1, 1), date(2025, 12, 31))
+    # current_ridership
+
     today = date.today()
-    # this will likely break in 2026
-    current_ridership = get_stats(date(2025, 1, 1), today)
-    current_ridership
-
-    fig = px.line(
-        current_ridership,
-        x="date",
-        y="ridership",
-        title="Subway ridership in the Central Business District",
-    )
-    st.plotly_chart(fig, key="current")
-
     one_year_ago = today.replace(year=today.year - 1)
-    past_ridership = get_stats(date(2024, 1, 1), one_year_ago)
-    past_ridership
 
-    fig = px.line(
-        past_ridership,
-        x="date",
-        y="ridership",
-        title="Subway ridership in the Central Business District",
-    )
-    st.plotly_chart(fig, key="past")
+    past_ridership = get_stats(date(2024, 1, 1), one_year_ago)
+    # past_ridership
+
+    current_ridership["year"] = 2025
+    past_ridership["year"] = 2024
+    # make years match so they line up on the chart
+    past_ridership["date"] += pd.DateOffset(years=1)
+
+    ridership = pd.concat([current_ridership, past_ridership])
+
+    fig = px.line(ridership, x="date", y="ridership", color="year")
+    st.plotly_chart(fig)
 
 
 run()
