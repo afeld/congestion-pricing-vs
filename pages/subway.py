@@ -1,13 +1,9 @@
-from datetime import date
+from datetime import date, timedelta
 from urllib.parse import urlencode
 
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 import streamlit as st
-from plotly.subplots import make_subplots
-
-START = "2025-01-05"
 
 st.markdown(
     """
@@ -26,6 +22,8 @@ def get_fence():
 
 @st.cache_data
 def get_stats(start: date, end: date):
+    """End date is not inclusive"""
+
     if start.year != end.year:
         raise ValueError("Start and end year must be the same")
 
@@ -56,8 +54,9 @@ def run():
     current_ridership = get_stats(date(2025, 1, 1), date(2025, 12, 31))
     # current_ridership
 
-    today = date.today()
-    one_year_ago = today.replace(year=today.year - 1)
+    latest_date = current_ridership["date"].max().date()
+    one_year_ago = latest_date - timedelta(days=365)
+    one_year_ago
 
     past_ridership = get_stats(date(2024, 1, 1), one_year_ago)
     # past_ridership
