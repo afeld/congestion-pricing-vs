@@ -66,6 +66,8 @@ def run():
     past_ridership = get_daily_ridership(date(2024, 1, 1), one_year_ago)
     # past_ridership
 
+    assert past_ridership.shape == current_ridership.shape
+
     current_ridership["year"] = 2025
     past_ridership["year"] = 2024
     # make years match so they line up on the chart
@@ -82,6 +84,16 @@ def run():
         line_dash="year",
         line_dash_map={2024: "dash", 2025: "solid"},
     )
+
+    fig.add_vline(
+        x=date(2025, 1, 5),
+        line_width=2,
+        line_dash="solid",
+        line_color="red",
+        # https://github.com/plotly/plotly.py/issues/3065
+        # annotation_text="Open date",
+    )
+
     st.plotly_chart(fig)
 
 
