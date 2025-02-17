@@ -6,6 +6,8 @@ import plotly.graph_objects as go
 import streamlit as st
 from plotly.subplots import make_subplots
 
+START = "2025-01-05"
+
 
 @st.cache_data
 def get_entrances():
@@ -32,7 +34,7 @@ def get_ridership():
         {
             "$select": "date_extract_woy(date) AS week, SUM(count) AS subway_ridership",
             "$group": "week",
-            "$where": "date >= '2025-01-05' AND mode = 'Subway'",
+            "$where": f"date >= '{START}' AND mode = 'Subway'",
             "$order": "week",
         }
     )
@@ -80,12 +82,12 @@ def run():
     fig = make_subplots(specs=[[{"secondary_y": True}]])
 
     fig.add_trace(
-        go.Line(x=entrances["week"], y=entrances["count"], name="Vehicle entries"),
+        go.Scatter(x=entrances["week"], y=entrances["count"], name="Vehicle entries"),
         secondary_y=False,
     )
 
     fig.add_trace(
-        go.Line(
+        go.Scatter(
             x=ridership["week"],
             y=ridership["subway_ridership"],
             name="Subway ridership",
