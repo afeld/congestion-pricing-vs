@@ -1,9 +1,6 @@
-from urllib.parse import urlencode
-
-import pandas as pd
 import streamlit as st
 
-from congestion.helper import ny_data_request
+from congestion.helper import df_without_commas, ny_data_request
 
 START = "2025-01-05"
 
@@ -25,7 +22,7 @@ def get_links():
     }
 
     links = ny_data_request("i4gi-tjb9", host="data.cityofnewyork.us", params=params)
-    links
+    df_without_commas(links, ["link_id"])
 
 
 get_links()

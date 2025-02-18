@@ -4,7 +4,7 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from congestion.helper import ny_data_request
+from congestion.helper import df_without_commas, ny_data_request
 
 st.markdown(
     """
@@ -72,14 +72,7 @@ def run():
 
     ridership = pd.concat([current_ridership, past_ridership])
 
-    # st.dataframe(
-    #     ridership.describe(),
-    #     column_config={
-    #         # print the year without commas
-    #         "year": st.column_config.NumberColumn(format="%.0f"),
-    #     },
-    # )
-    # st.write(ridership.info())
+    df_without_commas(ridership.describe(), columns=["year"])
 
     fig = px.line(
         ridership,
