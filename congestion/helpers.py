@@ -15,7 +15,7 @@ def ny_data_request(
     return pd.read_csv(f"https://{host}/resource/{dataset_id}.csv?{params_str}")
 
 
-def df_without_commas(df: pd.DataFrame, columns: list[str]) -> pd.DataFrame:
+def show_df_without_commas(df: pd.DataFrame, columns: list[str]):
     column_config = {
         column: st.column_config.NumberColumn(format="%.0f") for column in columns
     }
