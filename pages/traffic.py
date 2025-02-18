@@ -3,6 +3,8 @@ from urllib.parse import urlencode
 import pandas as pd
 import streamlit as st
 
+from congestion.helper import ny_data_request
+
 START = "2025-01-05"
 
 st.markdown(
@@ -16,16 +18,13 @@ st.markdown(
 
 @st.cache_data
 def get_links():
-    params = urlencode(
-        {
-            "$select": "DISTINCT link_id, link_name",
-            "$where": f"data_as_of >= '{START}' AND borough = 'Manhattan'",
-            "$order": "link_name",
-        }
-    )
-    links = pd.read_csv(
-        f"https://data.cityofnewyork.us/resource/i4gi-tjb9.csv?{params}"
-    )
+    params = {
+        "$select": "DISTINCT link_id, link_name",
+        "$where": f"data_as_of >= '{START}' AND borough = 'Manhattan'",
+        "$order": "link_name",
+    }
+
+    links = ny_data_request("i4gi-tjb9", host="data.cityofnewyork.us", params=params)
     links
 
 

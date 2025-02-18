@@ -1,10 +1,9 @@
-from urllib.parse import urlencode
-
-import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 from plotly.subplots import make_subplots
+
+from congestion.helper import ny_data_request
 
 START = "2025-01-05"
 
@@ -13,13 +12,11 @@ START = "2025-01-05"
 def get_entrances():
     """https://data.ny.gov/Transportation/MTA-Congestion-Relief-Zone-Vehicle-Entries-Beginni/t6yz-b64h/about_data"""
 
-    params = urlencode(
-        {
-            "$select": "date_extract_woy(toll_date) AS week, SUM(crz_entries) AS count_included, SUM(excluded_roadway_entries) AS count_excluded",
-            "$group": "week",
-        }
-    )
-    entrances = pd.read_csv(f"https://data.ny.gov/resource/t6yz-b64h.csv?{params}")
+    params = {
+        "$select": "date_extract_woy(toll_date) AS week, SUM(crz_entries) AS count_included, SUM(excluded_roadway_entries) AS count_excluded",
+        "$group": "week",
+    }
+    entrances = ny_data_request("t6yz-b64h", params=params)
 
     entrances["count"] = entrances["count_included"] + entrances["count_excluded"]
 
@@ -30,15 +27,14 @@ def get_entrances():
 def get_ridership():
     """https://data.ny.gov/Transportation/MTA-Daily-Ridership-and-Traffic-Beginning-2020/sayj-mze2/about_data"""
 
-    params = urlencode(
-        {
-            "$select": "date_extract_woy(date) AS week, SUM(count) AS subway_ridership",
-            "$group": "week",
-            "$where": f"date >= '{START}' AND mode = 'Subway'",
-            "$order": "week",
-        }
-    )
-    ridership = pd.read_csv(f"https://data.ny.gov/resource/sayj-mze2.csv?{params}")
+    params = {
+        "$select": "date_extract_woy(date) AS week, SUM(count) AS subway_ridership",
+        "$group": "week",
+        "$where": f"date >= '{START}' AND mode = 'Subway'",
+        "$order": "week",
+    }
+
+    ridership = ny_data_request("sayj-mze2", params=params)
 
     return ridership
 
@@ -112,6 +108,7 @@ st.markdown(
 See also:
 
 - [MTA Metrics: Vehicle Entries](https://metrics.mta.info/?cbdtp/vehicleentries)
+- [Is Congestion Pricing Working?](https://iscongestionpricingworking.com/)
 - [Congestion Pricing Tracker](https://www.congestion-pricing-tracker.com/)
 """
 )

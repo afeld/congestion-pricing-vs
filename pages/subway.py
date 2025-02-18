@@ -1,9 +1,10 @@
 from datetime import date, timedelta
-from urllib.parse import urlencode
 
 import pandas as pd
 import plotly.express as px
 import streamlit as st
+
+from congestion.helper import ny_data_request
 
 st.markdown(
     """
@@ -16,7 +17,7 @@ Using [MTA Subway Hourly Ridership data](https://data.ny.gov/Transportation/MTA-
 
 @st.cache_data
 def get_fence():
-    polygons = pd.read_csv("https://data.ny.gov/resource/srxy-5nxn.csv")
+    polygons = ny_data_request("srxy-5nxn")
     return polygons["polygon"]
 
 
@@ -46,14 +47,10 @@ def get_daily_ridership(start: date, end: date):
     dataset_id = "5wq4-mkjj" if start.year == current_year else "wujg-7c2s"
 
     params = get_ridership_params(start, end)
-    encoded_params = urlencode(params)
 
-    url = f"https://data.ny.gov/resource/{dataset_id}.csv?{encoded_params}"
-
-    return pd.read_csv(
-        url,
-        parse_dates=["date"],
-    )
+    ridership = ny_data_request(dataset_id, params=params)
+    ridership["date"] = pd.to_datetime(ridership["date"])
+    return ridership
 
 
 def run():
@@ -74,6 +71,15 @@ def run():
     past_ridership["date"] += pd.DateOffset(years=1)
 
     ridership = pd.concat([current_ridership, past_ridership])
+
+    # st.dataframe(
+    #     ridership.describe(),
+    #     column_config={
+    #         # print the year without commas
+    #         "year": st.column_config.NumberColumn(format="%.0f"),
+    #     },
+    # )
+    # st.write(ridership.info())
 
     fig = px.line(
         ridership,
